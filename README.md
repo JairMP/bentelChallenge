@@ -1,6 +1,6 @@
 # Documentation
 
-## Installation
+## Installation (in project folder)
 
 Setup a virtualenv and activate.
 
