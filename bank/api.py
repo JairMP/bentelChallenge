@@ -1,6 +1,6 @@
 from .models import Account, Transaction
 from rest_framework.decorators import api_view
-from .serializers import AccountSerializer, TransactionSerializer, AccountUpdateSerializer
+from .serializers import AccountSerializer, TransactionSerializer, AccountUpdateSerializer, TransactionUpdateSerializer
 from rest_framework.response import Response
 import shortuuid
 from rest_framework import status
@@ -44,7 +44,6 @@ def account_detail_api_view(request, account_number=None):
 
         elif request.method == 'PUT':
             data = request.data
-            data['balance'] = account.balance
 
             account_serializer = AccountUpdateSerializer(
                 account, data=request.data)
@@ -125,7 +124,7 @@ def transaction_detail_api_view(request, transaction_id=None):
                 return Response(transaction_serializer.data, status=status.HTTP_200_OK)
 
         elif request.method == 'PUT':
-            transaction_serializer = TransactionSerializer(
+            transaction_serializer = TransactionUpdateSerializer(
                 transaction, data=request.data)
             if transaction_serializer.is_valid():
                 transaction_serializer.save()

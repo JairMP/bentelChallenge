@@ -19,3 +19,11 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = ('__all__')
+
+
+class TransactionUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = ('__all__')
+        read_only_fields = (
+            'transaction_id', 'account_number', 'amount', 'transaction_type', 'created_at')
