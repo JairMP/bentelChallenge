@@ -29,7 +29,7 @@ make start
 Run Tests.
 
 ```sh
-make tests
+python manage.py test
 ```
 
 ## Endpoints
