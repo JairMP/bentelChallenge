@@ -37,5 +37,21 @@ make tests
 To consume API endponints:
 
 ```sh
-http://127.0.0.1:8000/api/
+BASE URL: http://127.0.0.1:8000/api/
+```
+
+```sh
+GET-POST http://127.0.0.1:8000/api/account
+```
+
+```sh
+GET-POST http://127.0.0.1:8000/api/transaction
+```
+
+```sh
+GET-PUT-DELETE http://127.0.0.1:8000/api/account/:account_number
+```
+
+```sh
+GET-PUT-DELETE http://127.0.0.1:8000/api/transaction/:transaction_id
 ```
