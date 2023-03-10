@@ -8,6 +8,13 @@ class AccountSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
 
+class AccountUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ('__all__')
+        read_only_fields = ('account_number', 'balance', 'created_at')
+
+
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction

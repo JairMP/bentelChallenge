@@ -1,6 +1,6 @@
 from .models import Account, Transaction
 from rest_framework.decorators import api_view
-from .serializers import AccountSerializer, TransactionSerializer
+from .serializers import AccountSerializer, TransactionSerializer, AccountUpdateSerializer
 from rest_framework.response import Response
 import shortuuid
 from rest_framework import status
@@ -28,6 +28,8 @@ def account_api_view(request):
         return Response(account_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+################# ACCOUNT WITH ID #################
+
 @api_view(['GET', 'PUT', 'DELETE'])
 def account_detail_api_view(request, account_number=None):
     account = Account.objects.filter(
@@ -41,7 +43,12 @@ def account_detail_api_view(request, account_number=None):
                 return Response(account_serializer.data, status=status.HTTP_200_OK)
 
         elif request.method == 'PUT':
-            account_serializer = AccountSerializer(account, data=request.data)
+            data = request.data
+            data['balance'] = account.balance
+
+            account_serializer = AccountUpdateSerializer(
+                account, data=request.data)
+
             if account_serializer.is_valid():
                 account_serializer.save()
                 return Response(account_serializer.data, status=status.HTTP_200_OK)
@@ -61,25 +68,54 @@ def account_detail_api_view(request, account_number=None):
 def transaction_api_view(request):
     if request.method == 'GET':
         transactions = Transaction.objects.all()
+
         transactions_serializer = TransactionSerializer(
             transactions, many=True)
         return Response(transactions_serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'POST':
         data = request.data
+
+        if not data.get('amount') or float(data.get('amount')) <= 0:
+            return Response({'message': 'Amount cant be 0 or negative value'}, status=status.HTTP_400_BAD_REQUEST)
+
+        account = Account.objects.filter(
+            account_number=data["account_number"]).first()
+
+        if not account:
+            return Response({'message': 'Account Not Found'}, status=status.HTTP_404_NOT_FOUND)
+
         data['transaction_id'] = shortuuid.uuid()
-        transaction_serializer = TransactionSerializer(data=request.data)
+
+        transaction_serializer = TransactionSerializer(
+            data=data, context={'account_number': account})
 
         if transaction_serializer.is_valid():
+
+            if data.get('transaction_type') == "deposit":
+
+                account.balance += data['amount']
+                account.save()
+
+            elif data.get('transaction_type') == "withdrawal":
+
+                if account.balance == 0:
+                    return Response({'message': 'Balance is 0'}, status=status.HTTP_400_BAD_REQUEST)
+
+                account.balance -= data['amount']
+                account.save()
+
             transaction_serializer.save()
             return Response(transaction_serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(transaction_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
+################# TRANSACTIONS WITH ID #################
+
+@api_view(['GET', 'PUT', 'DELETE'])
 def transaction_detail_api_view(request, transaction_id=None):
-    transaction = Account.objects.filter(
+    transaction = Transaction.objects.filter(
         transaction_id=transaction_id).first()
 
     if transaction:
@@ -102,3 +138,20 @@ def transaction_detail_api_view(request, transaction_id=None):
             return Response({'message': 'Transaction Deleted'}, status=status.HTTP_200_OK)
 
     return Response({'message': 'Transaction Not Found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+################# TRANSACTIONS ASSOCIATED TO ACCOUNT ##################
+
+@api_view(['GET'])
+def transactions_account_api_view(request, account_number=None):
+
+    if request.method == 'GET':
+        transactions = Transaction.objects.filter(
+            account_number=account_number)
+
+        transactions_serializer = TransactionSerializer(
+            transactions, many=True)
+
+        return Response(transactions_serializer.data, status=status.HTTP_200_OK)
+
+    return Response({'message': 'Account Not Found'}, status=status.HTTP_404_NOT_FOUND)
