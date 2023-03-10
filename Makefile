@@ -1,7 +1,7 @@
 start:
 	python manage.py runserver
 tests:
-	pytest
+	python manage.py test
 migrations:
 	python manage.py makemigrations
 migrate:
